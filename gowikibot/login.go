@@ -10,7 +10,6 @@ package gowikibot
 
 import (
 	"fmt"
-	"parameters"
 )
 
 // Call out to the API and attempt to do a login, returning any errors we may
