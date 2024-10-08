@@ -23,7 +23,7 @@ func (c *Client) Login(username, password string) error {
 		return err
 	}
 
-	v := parameters.Values{
+	v := Values{
 		"action":     "login",
 		"lgname":     username,
 		"lgpassword": password,
