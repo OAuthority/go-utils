@@ -1,5 +1,5 @@
 // Helpers for parameters in urls; doesn't really do much on its own.
-// 
+//
 // Most of this code is copied from the net/url package and is slightly adapted to ensure that
 // it adheres with what MediaWiki expects.
 // it is therefore Copyright (2009) of The Go Authors.
@@ -43,7 +43,7 @@ func (val Values) Delete(key string) {
 	delete(val, key)
 }
 
-// Encode all of the values so that they are in URL format, with the exception of the 
+// Encode all of the values so that they are in URL format, with the exception of the
 // token, which is added at the end of the parameters and is not encoded. This ensures
 // that if, for some reason, the token has been cut off, that the request is not executed
 // see the MediaWiki API documentation for discussion of this.
