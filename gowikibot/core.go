@@ -12,9 +12,10 @@
 package gowikibot
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"os"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -119,8 +120,7 @@ func (c *Client) GetToken(tokenName string) (string, error) {
 	return token, nil
 }
 
-
-// Make a GET request to the API and return the JSON. 
+// Make a GET request to the API and return the JSON.
 // MediaWiki's default return method is JSON. Whilst MediaWiki
 // supports returning a result as XML or PHP, Gowikibot does.
 // not support this and it is rarely—if ever—used in MediaWiki
@@ -144,7 +144,7 @@ func (c *Client) Get(v Values) (map[string]interface{}, error) {
 	defer resp.Body.Close()
 
 	// Read and parse the response body
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("error reading response body: %v", err)
 	}
@@ -180,7 +180,7 @@ func (c *Client) Post(v Values) (map[string]interface{}, error) {
 	defer resp.Body.Close()
 
 	// Read and parse the response body
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("error reading response body: %v", err)
 	}
@@ -192,4 +192,22 @@ func (c *Client) Post(v Values) (map[string]interface{}, error) {
 	}
 
 	return jsonResponse, nil
+}
+
+// Read a config file and return the family that we are operating on
+// potentially could be refined to return anything rather than just the family?
+func LoadCredentialsFromFile(filename string) (map[string]Family, error) {
+
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	var credentials map[string]Family
+	err = json.Unmarshal(data, &credentials)
+	if err != nil {
+		return nil, err
+	}
+
+	return credentials, nil
 }
