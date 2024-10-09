@@ -52,7 +52,7 @@ func main() {
 
 	flag.Usage = func() {
 
-		fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", "download_files.py")
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", "download_files.go")
 
 		fmt.Println("This script aids in downloading all of the images from a MediaWiki wiki to a local folder on your hard drive. ")
 
