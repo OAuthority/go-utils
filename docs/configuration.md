@@ -1,6 +1,7 @@
 # Configuration/Family File
 The configuration/family file is the main way that you make your wiki known to Gowikibot, and includes the url of the wiki and the login credentials for that specific wiki. It is a JSON file where the key is a unique identifier for the wiki and the value is the credentials.  
 
+> The configuration file must be named **config.json** and should reside in the root directory of Gowikibot (along with the main.go file.)
 ### Example
 ```json
 {
