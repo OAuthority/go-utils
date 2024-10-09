@@ -10,6 +10,7 @@ package gowikibot
 
 import (
 	"fmt"
+	"os"
 )
 
 // Define the struct based on the API response format
@@ -27,6 +28,12 @@ type ApiError struct {
 	Info string
 }
 
+type Family struct {
+	APIUrl   string `json:"apiUrl"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 func (e ApiError) Error() string {
 	if e.Info != "" {
 		return fmt.Sprintf("API Error - Code: %s, Reason: %s", e.Code, e.Info)
@@ -36,21 +43,40 @@ func (e ApiError) Error() string {
 
 // Call out to the API and attempt to do a login, returning any errors we may
 // encounter along the way.
-func (c *Client) Login(username, password string) error {
+func (c *Client) Login(family string) error {
+
 	// Get login token
 	token, err := c.GetToken("login")
 	if err != nil {
 		return err
 	}
 
+	filePath, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	credentials, err := LoadCredentialsFromFile(filePath + "/config.json")
+
+	if err != nil {
+		return err
+	}
+
+	wiki, ok := credentials[family]
+
+	if !ok {
+		return fmt.Errorf("wiki family %s not found in credentials", family)
+	}
+
 	v := Values{
 		"action":     "login",
-		"lgname":     username,
-		"lgpassword": password,
+		"lgname":     wiki.Username,
+		"lgpassword": wiki.Password,
 		"lgtoken":    token,
 	}
 
-	fmt.Printf("Attempting to log you in as %s\n", username)
+	fmt.Printf("Attempting to log you in as %s\n", wiki.Username)
 
 	// Make the POST request
 	response, err := c.Post(v)
@@ -76,6 +102,6 @@ func (c *Client) Login(username, password string) error {
 		return ApiError{Code: result, Info: reason}
 	}
 
-	fmt.Printf("Successfully logged in as %s\n", username)
+	fmt.Printf("Successfully logged in as %s\n", wiki.Username)
 	return nil
 }
