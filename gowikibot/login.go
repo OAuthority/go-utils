@@ -12,12 +12,33 @@ import (
 	"fmt"
 )
 
+// Define the struct based on the API response format
+// the reason is optional and may be omitted if empty
+// MediaWiki will not pass back a reason if the login was successful.
+type LoginResponse struct {
+	Login struct {
+		Result string `json:"result"`
+		Reason string `json:"reason,omitempty"`
+	} `json:"login"`
+}
+
+type ApiError struct {
+	Code string
+	Info string
+}
+
+func (e ApiError) Error() string {
+	if e.Info != "" {
+		return fmt.Sprintf("API Error - Code: %s, Reason: %s", e.Code, e.Info)
+	}
+	return fmt.Sprintf("API Error - Code: %s", e.Code)
+}
+
 // Call out to the API and attempt to do a login, returning any errors we may
 // encounter along the way.
 func (c *Client) Login(username, password string) error {
-
-	token, err := c.GetToken(LoginToken)
-
+	// Get login token
+	token, err := c.GetToken("login")
 	if err != nil {
 		return err
 	}
@@ -29,30 +50,32 @@ func (c *Client) Login(username, password string) error {
 		"lgtoken":    token,
 	}
 
-	fmt.Printf("Attempting to log you in as %s", username)
+	fmt.Printf("Attempting to log you in as %s\n", username)
 
+	// Make the POST request
 	response, err := c.Post(v)
-
 	if err != nil {
 		return err
 	}
 
-	loginResult, err := response.GetString("login", "result")
-
-	if err != nil {
-		return fmt.Errorf("the API response is not valid, the API did not return a string for the login result.")
+	// Extract the login result from the response map
+	loginData, ok := response["login"].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("invalid API response: missing 'login' field")
 	}
 
-	if loginResult != "Success" {
-		apiError := ApiError{Code: loginResult}
-
-		if reason, err := response.GetString("login", "reason"); err == nil {
-			apiError.Info = reason
-		}
-
-		return apiError
+	// Extract the "result" field
+	result, ok := loginData["result"].(string)
+	if !ok {
+		return fmt.Errorf("invalid API response: missing 'result' field")
 	}
 
-	fmt.Printf("Successfully logged in as %s", username)
+	// Check if login was successful
+	if result != "Success" {
+		reason, _ := loginData["reason"].(string)
+		return ApiError{Code: result, Info: reason}
+	}
+
+	fmt.Printf("Successfully logged in as %s\n", username)
 	return nil
 }
